@@ -15,6 +15,11 @@ abstract contract DiamondWritable is IDiamondWritable, OwnableInternal {
     /**
      * @inheritdoc IDiamondWritable
      */
+     
+    function setUpgradeTimestamps() external onlyOwner {
+        DiamondBaseStorage.layout().setUpgradeTimestamps();
+    }
+    
     function diamondCut(
         FacetCut[] calldata facetCuts,
         address target,
