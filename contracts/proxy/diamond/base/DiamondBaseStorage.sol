@@ -20,7 +20,7 @@ library DiamondBaseStorage {
         // array of selector slots with 8 selectors per slot
         mapping(uint256 => bytes32) selectorSlots;
         address fallbackAddress;
-        // Start and End time of updates => 24hours difference
+        // Start and End time of upgrades => 24 hours difference
         uint256 upgradeStartTimestamp;
         uint256 upgradeEndTimestamp;
     }
