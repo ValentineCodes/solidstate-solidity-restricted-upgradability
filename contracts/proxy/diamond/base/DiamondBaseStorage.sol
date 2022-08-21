@@ -20,6 +20,9 @@ library DiamondBaseStorage {
         // array of selector slots with 8 selectors per slot
         mapping(uint256 => bytes32) selectorSlots;
         address fallbackAddress;
+        // Start and End time of updates => 24hours difference
+        uint256 upgradeStartTimestamp;
+        uint256 upgradeEndTimestamp;
     }
 
     bytes32 constant CLEAR_ADDRESS_MASK =
@@ -28,18 +31,43 @@ library DiamondBaseStorage {
 
     bytes32 internal constant STORAGE_SLOT =
         keccak256('solidstate.contracts.storage.DiamondBase');
+        
+    uint256 constant SECONDS_BEFORE_UPGRADE_ENABLED = 30 days;
+    uint256 constant SECONDS_UPGRADE_ENABLED = 24 hours;
 
     event DiamondCut(
         IDiamondWritable.FacetCut[] facetCuts,
         address target,
         bytes data
     );
+    
+    event UpdatedUpgradeTimestamps(
+        uint256 upgradeStartTimestamp;
+        uint256 upgradeEndTimestamp;
+    )
 
     function layout() internal pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
         assembly {
             l.slot := slot
         }
+    }
+    
+     /**
+     * @notice Enables upgrades after 30 days for 24 hours only
+     * @notice Emits an event for tracking
+     * @param l storage layout
+     */
+    function setUpgradeTimestamps(Layout storage l) internal {
+
+        require(block.timestamp > l.upgradeEndTimestamp, "SolidState: Cannot set upgrade timestamps before current time ends.");
+
+        uint256 nextUpgradeStartTimestamp = block.timestamp + SECONDS_BEFORE_UPGRADE_ENABLED;
+
+        l.upgradeStartTimestamp = nextUpgradeStartTimestamp;
+        l.upgradeEndTimestamp = nextUpgradeStartTimestamp + SECONDS_UPGRADE_ENABLED;
+
+        emit UpdatedUpgradeTimestamps(nextUpgradeStartTimestamp, nextUpgradeStartTimestamp + SECONDS_UPGRADE_ENABLED);
     }
 
     /**
