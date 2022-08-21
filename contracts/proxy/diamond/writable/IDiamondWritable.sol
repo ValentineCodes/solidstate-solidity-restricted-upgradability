@@ -20,6 +20,12 @@ interface IDiamondWritable {
         FacetCutAction action;
         bytes4[] selectors;
     }
+    
+    /**
+     * @notice sets the start and end timestamps for diamond upgrades
+     * @dev can only be called after upgrade ends
+     */
+    function setUpgradeTimestamps() external;
 
     /**
      * @notice update diamond facets and optionally execute arbitrary initialization function
