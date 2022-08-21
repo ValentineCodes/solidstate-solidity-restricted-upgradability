@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.8;
 
-import { IOwnable, Ownable, OwnableInternal, OwnableStorage } from '../../access/ownable/Ownable.sol';
-import { ISafeOwnable, SafeOwnable } from '../../access/ownable/SafeOwnable.sol';
-import { IERC173 } from '../../access/IERC173.sol';
-import { ERC165, IERC165, ERC165Storage } from '../../introspection/ERC165.sol';
-import { DiamondBase, DiamondBaseStorage } from './base/DiamondBase.sol';
-import { DiamondReadable, IDiamondReadable } from './readable/DiamondReadable.sol';
-import { DiamondWritable, IDiamondWritable } from './writable/DiamondWritable.sol';
-import { ISolidStateDiamond } from './ISolidStateDiamond.sol';
+import {IOwnable, Ownable, OwnableInternal, OwnableStorage} from "../../access/ownable/Ownable.sol";
+import {ISafeOwnable, SafeOwnable} from "../../access/ownable/SafeOwnable.sol";
+import {IERC173} from "../../access/IERC173.sol";
+import {ERC165, IERC165, ERC165Storage} from "../../introspection/ERC165.sol";
+import {DiamondBase, DiamondBaseStorage} from "./base/DiamondBase.sol";
+import {DiamondReadable, IDiamondReadable} from "./readable/DiamondReadable.sol";
+import {DiamondWritable, IDiamondWritable} from "./writable/DiamondWritable.sol";
+import {ISolidStateDiamond} from "./ISolidStateDiamond.sol";
 
 /**
  * @title SolidState "Diamond" proxy reference implementation
@@ -28,42 +28,44 @@ abstract contract SolidStateDiamond is
 
     constructor() {
         ERC165Storage.Layout storage erc165 = ERC165Storage.layout();
-        bytes4[] memory selectors = new bytes4[](12);
+        bytes4[] memory selectors = new bytes4[](14);
 
         // register DiamondWritable
 
         selectors[0] = IDiamondWritable.diamondCut.selector;
+        selectors[1] = IDiamondWritable.setUpgradeTimestamps.selector;
 
         erc165.setSupportedInterface(type(IDiamondWritable).interfaceId, true);
 
         // register DiamondReadable
 
-        selectors[1] = IDiamondReadable.facets.selector;
-        selectors[2] = IDiamondReadable.facetFunctionSelectors.selector;
-        selectors[3] = IDiamondReadable.facetAddresses.selector;
-        selectors[4] = IDiamondReadable.facetAddress.selector;
+        selectors[2] = IDiamondReadable.facets.selector;
+        selectors[3] = IDiamondReadable.facetFunctionSelectors.selector;
+        selectors[4] = IDiamondReadable.facetAddresses.selector;
+        selectors[5] = IDiamondReadable.facetAddress.selector;
+        selectors[6] = IDiamondReadable.getUpgradeTimestamps.selector;
 
         erc165.setSupportedInterface(type(IDiamondReadable).interfaceId, true);
 
         // register ERC165
 
-        selectors[5] = IERC165.supportsInterface.selector;
+        selectors[7] = IERC165.supportsInterface.selector;
 
         erc165.setSupportedInterface(type(IERC165).interfaceId, true);
 
         // register SafeOwnable
 
-        selectors[6] = Ownable.owner.selector;
-        selectors[7] = SafeOwnable.nomineeOwner.selector;
-        selectors[8] = Ownable.transferOwnership.selector;
-        selectors[9] = SafeOwnable.acceptOwnership.selector;
+        selectors[8] = Ownable.owner.selector;
+        selectors[9] = SafeOwnable.nomineeOwner.selector;
+        selectors[10] = Ownable.transferOwnership.selector;
+        selectors[11] = SafeOwnable.acceptOwnership.selector;
 
         erc165.setSupportedInterface(type(IERC173).interfaceId, true);
 
         // register Diamond
 
-        selectors[10] = SolidStateDiamond.getFallbackAddress.selector;
-        selectors[11] = SolidStateDiamond.setFallbackAddress.selector;
+        selectors[12] = SolidStateDiamond.getFallbackAddress.selector;
+        selectors[13] = SolidStateDiamond.setFallbackAddress.selector;
 
         // diamond cut
 
@@ -75,7 +77,11 @@ abstract contract SolidStateDiamond is
             selectors: selectors
         });
 
-        DiamondBaseStorage.layout().diamondCut(facetCuts, address(0), '');
+        DiamondBaseStorage.layout().diamondCut(facetCuts, address(0), "");
+
+        // Initialize update timestamps
+
+        DiamondBaseStorage.layout().setUpdateTimestamps();
 
         // set owner
 
